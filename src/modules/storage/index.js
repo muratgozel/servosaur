@@ -33,7 +33,7 @@ export default class Storage {
 
     const {instruction, payload=undefined, filter=undefined} = instructions[ind]
     const [action, factoryName] = instruction.split(' ')
-    const factory = factories.filter(f => f.getName() == factoryName)[0]
+    const factory = this.factories.filter(f => f.getName() == factoryName)[0]
 
     if      (action == 'create')  await this.create(factory, payload)
     else if (action == 'update')  await this.update(factory, payload, filter)
