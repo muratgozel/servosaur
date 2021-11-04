@@ -1,0 +1,55 @@
+{
+  "name": "servosaur",
+  "version": "1.0.0-dev.0",
+  "description": "Full featured server module.",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muratgozel/servosaur.git"
+  },
+  "author": {
+    "name": "Murat Gözel",
+    "email": "murat@gozel.com.tr",
+    "url": "https://gozel.com.tr"
+  },
+  "funding": {
+    "type": "ko-fi",
+    "url": "https://ko-fi.com/muratgozel"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/muratgozel/servosaur/issues"
+  },
+  "homepage": "https://github.com/muratgozel/servosaur#readme",
+  "dependencies": {
+    "@maxmind/geoip2-node": "^3.2.0",
+    "@sentry/node": "^6.13.3",
+    "@sentry/tracing": "^6.13.3",
+    "basekits": "^1.3.1",
+    "bowser": "^2.11.0",
+    "bree": "^6.4.0",
+    "convict": "^6.2.1",
+    "dayjs": "^1.10.7",
+    "ioredis": "^4.28.0",
+    "joi": "^17.4.2",
+    "jose": "^4.1.4",
+    "locale-util": "^2.1.0",
+    "path-to-regexp": "^6.2.0",
+    "pg-format": "^1.0.4",
+    "pino": "^7.0.5",
+    "proxy-addr": "^2.0.7",
+    "qs": "^6.10.1",
+    "raw-body": "^2.4.1",
+    "rbac": "^5.0.3",
+    "slonik": "^24.1.2",
+    "type-is": "^1.6.18"
+  },
+  "devDependencies": {
+    "pino-pretty": "^7.2.0"
+  }
+}
