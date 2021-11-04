@@ -51,7 +51,7 @@ export default class Storage {
     const tableToken = sql.identifier([factory.getName()])
     const description = factory.getDescription('root')
     const filterToken = this.createFilterToken(description, filter)
-    const query = sql`select id from ${tableToken} ${filterToken} limit 1`
+    const query = sql`select id from ${tableToken} where ${filterToken} limit 1`
 
     try {
       return await this.pgpool.exists(query)
@@ -64,7 +64,7 @@ export default class Storage {
     const tableToken = sql.identifier([factory.getName()])
     const description = factory.getDescription('root')
     const filterToken = this.createFilterToken(description, filter)
-    const query = sql`select * from ${tableToken} ${filterToken}`
+    const query = sql`select * from ${tableToken} where ${filterToken}`
 
     try {
       return await this.pgconn.any(query)
@@ -77,7 +77,7 @@ export default class Storage {
     const tableToken = sql.identifier([factory.getName()])
     const description = factory.getDescription('root')
     const filterToken = this.createFilterToken(description, filter)
-    const query = sql`select * from ${tableToken} ${filterToken}`
+    const query = sql`select * from ${tableToken} where ${filterToken}`
 
     try {
       return await this.pgconn.one(query)
@@ -98,7 +98,7 @@ export default class Storage {
     const tableToken = sql.identifier([factory.getName()])
     const description = factory.getDescription('root')
     const filterToken = this.createFilterToken(description, filter)
-    const query = sql`delete from ${tableToken} ${filterToken}`
+    const query = sql`delete from ${table} where ${filterToken}`
 
     try {
       const result = await this.pgconn.query(query)
@@ -120,7 +120,7 @@ export default class Storage {
     const query = sql`
       update ${tableToken}
       set ${updatesToken}
-      ${filterToken}
+      where ${filterToken}
       returning *
     `
 
@@ -167,7 +167,7 @@ export default class Storage {
 
   createFilterToken(description, obj=null) {
     if (!obj) {
-      return ''
+      return sql`1 > 0`
     }
 
     const tokens = []
@@ -188,11 +188,11 @@ export default class Storage {
       }
     }
 
-    if (!tokens.length === 0) {
-      return ''
+    if (tokens.length === 0) {
+      return sql`1 > 0`
     }
 
-    return `WHERE ${sql.join(tokens, sql` AND `)}`
+    return sql.join(tokens, sql` AND `)
   }
 
   createUpdatesToken(description, payload) {
