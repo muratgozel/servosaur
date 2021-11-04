@@ -1,6 +1,5 @@
 import {sql, NotFoundError, DataIntegrityError} from 'slonik'
 import pgformat from 'pg-format'
-import { factory } from '../..'
 
 export default class Storage {
   constructor(ctx, factories) {
