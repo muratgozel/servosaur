@@ -192,7 +192,7 @@ export default class Storage {
       return ''
     }
 
-    return sql.join(tokens, sql` AND `)
+    return `WHERE ${sql.join(tokens, sql` AND `)}`
   }
 
   createUpdatesToken(description, payload) {
