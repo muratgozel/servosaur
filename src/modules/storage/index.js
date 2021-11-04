@@ -167,7 +167,7 @@ export default class Storage {
 
   createFilterToken(description, obj=null) {
     if (!obj) {
-      return sql``
+      return sql`1 > 0`
     }
 
     const tokens = []
