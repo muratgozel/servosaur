@@ -1,5 +1,6 @@
 import {sql, NotFoundError, DataIntegrityError} from 'slonik'
 import pgformat from 'pg-format'
+import { factory } from '../..'
 
 export default class Storage {
   constructor(ctx, factories) {
@@ -54,7 +55,13 @@ export default class Storage {
     const query = sql`select id from ${tableToken} where ${filterToken} limit 1`
 
     try {
-      return await this.pgpool.exists(query)
+      const bool = await this.pgpool.exists(query)
+
+      this.results.unshift({
+        action: 'exists', entities: bool, factory: factory
+      })
+
+      return bool
     } catch (e) {
       throw new Error('FAILED_QUERY', {cause: e})
     }
@@ -67,7 +74,14 @@ export default class Storage {
     const query = sql`select * from ${tableToken} where ${filterToken}`
 
     try {
-      return await this.pgconn.any(query)
+      const rows = await this.pgconn.any(query)
+      const entities = factory.createEntities(rows)
+
+      this.results.unshift({
+        action: 'many', entities: entities, factory: factory
+      })
+
+      return entities
     } catch (e) {
       throw new Error('FAILED_QUERY', {cause: e})
     }
@@ -80,7 +94,14 @@ export default class Storage {
     const query = sql`select * from ${tableToken} where ${filterToken}`
 
     try {
-      return await this.pgconn.one(query)
+      const row = await this.pgconn.one(query)
+      const entities = factory.createEntities([row])
+
+      this.results.unshift({
+        action: 'one', entities: entities, factory: factory
+      })
+
+      return entities[0]
     } catch (e) {
       if (e instanceof NotFoundError) {
         throw new Error('DATA_NOT_FOUND', {cause: e})
@@ -98,14 +119,17 @@ export default class Storage {
     const tableToken = sql.identifier([factory.getName()])
     const description = factory.getDescription('root')
     const filterToken = this.createFilterToken(description, filter)
-    const query = sql`delete from ${table} where ${filterToken}`
+    const query = sql`delete from ${table} where ${filterToken} returning *`
 
     try {
       const result = await this.pgconn.query(query)
+      const entities = factory.createEntities(result.rows)
 
-      return {
-        rowCount: result.rowCount
-      }
+      this.results.unshift({
+        action: 'deleted', entities: entities, factory: factory
+      })
+
+      return entities
     } catch (e) {
       throw new Error('FAILED_QUERY', {cause: e})
     }
@@ -128,9 +152,9 @@ export default class Storage {
       const result = await this.pgconn.query(query)
       const entities = factory.createEntities(result.rows)
 
-      entities.map((entity) => this.results.unshift({
-        action: 'updated', entity: entity, factory: factory
-      }))
+      this.results.unshift({
+        action: 'updated', entities: entities, factory: factory
+      })
 
       return entities
     } catch (e) {
@@ -155,14 +179,24 @@ export default class Storage {
       const result = await this.pgconn.query(query)
       const entities = factory.createEntities(result.rows)
 
-      entities.map((entity) => this.results.unshift({
-        action: 'created', entity: entity, factory: factory
-      }))
+      this.results.unshift({
+        action: 'created', entities: entities, factory: factory
+      })
 
       return entities
     } catch (e) {
       throw new Error('FAILED_QUERY', {cause: e})
     }
+  }
+
+  getResult(action, name) {
+    for (const obj of this.results) {
+      if (obj.action == action && name == factory.getName()) {
+        if (action == 'one') return obj.entities[0]
+        else return obj.entities
+      }
+    }
+    return []
   }
 
   createFilterToken(description, obj=null) {
