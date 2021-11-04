@@ -20,7 +20,7 @@ export default class Storage {
       this.pgpool = this.ctx.pgpool
       this.pgconn = pgconn
 
-      await _process(instructions)
+      await this._process(instructions)
 
       return this.results
     })
@@ -44,7 +44,7 @@ export default class Storage {
 
     ind += 1
 
-    return await _process(instructions, ind)
+    return await this._process(instructions, ind)
   }
 
   async exists(factory, filter) {
