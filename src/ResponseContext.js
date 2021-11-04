@@ -134,11 +134,16 @@ export default class ResponseContext extends EventEmitter {
     this.httpHeaders = Object.assign({}, this.httpHeaders, cfg.httpHeaders || {})
     this.httpStatusCode = cfg.httpStatusCode
 
-    if (this.httpHeaders['Content-Type'] == 'application/json' && this.isObject(this.data)) {
-      this.data = JSON.stringify(this.data)
-    }
-
     this.emit('ready')
+  }
+
+  serialize(data) {
+    if (this.isObject(data) || Array.isArray(data)) {
+      return JSON.stringify(data)
+    }
+    else {
+      return data
+    }
   }
 
   #setContentType(data) {

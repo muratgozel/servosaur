@@ -25,7 +25,7 @@ export default (ctx) => {
       }
 
       response.writeHead(res.httpStatusCode, res.httpHeaders)
-      response.write(res.data)
+      response.write(res.serialize(res.data))
       response.end()
     })
 
