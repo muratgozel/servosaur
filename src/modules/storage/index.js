@@ -40,6 +40,7 @@ export default class Storage {
     else if (action == 'delete')  await this.delete(factory, filter)
     else if (action == 'one')     await this.one(factory, filter)
     else if (action == 'many')    await this.many(factory, filter)
+    else if (action == 'exists')  await this.exists(factory, filter)
     else {}
 
     ind += 1
