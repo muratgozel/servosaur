@@ -1,6 +1,6 @@
 {
   "name": "servosaur",
-  "version": "1.0.0-dev.13",
+  "version": "1.0.0-dev.14",
   "description": "Full featured server module.",
   "main": "src/index.js",
   "module": "src/index.js",
@@ -34,6 +34,7 @@
     "bowser": "^2.11.0",
     "bree": "^6.4.0",
     "convict": "^6.2.1",
+    "cuid": "^2.1.8",
     "dayjs": "^1.10.7",
     "ioredis": "^4.28.0",
     "joi": "^17.4.2",
@@ -42,12 +43,12 @@
     "path-to-regexp": "^6.2.0",
     "pg-format": "^1.0.4",
     "pino": "^7.0.5",
+    "pino-pretty": "^7.2.0",
     "proxy-addr": "^2.0.7",
     "qs": "^6.10.1",
     "raw-body": "^2.4.1",
     "rbac": "^5.0.3",
     "slonik": "^24.1.2",
-    "type-is": "^1.6.18",
-    "pino-pretty": "^7.2.0"
+    "type-is": "^1.6.18"
   }
 }

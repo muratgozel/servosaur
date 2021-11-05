@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import cuid from 'cuid'
 
 function parseHexString(hex) {
   const bytes = []
@@ -11,6 +12,10 @@ function parseHexString(hex) {
 function sumBytes(memo, byte) {
   memo += byte
   return memo
+}
+
+export function generateNonce() {
+  return cuid()
 }
 
 export function generateHash(nonce, secret) {
