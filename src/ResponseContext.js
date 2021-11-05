@@ -10,7 +10,18 @@ export default class ResponseContext extends EventEmitter {
     this.error = null
   }
 
-  aborted() {
+  invalidBody(code=null, error=undefined) {
+    this.#createResponse({
+      error,
+      data: {error: {
+        code: code || 'BODY_VALIDATION_ERROR'
+      }},
+      httpHeaders: {'Content-Type': 'application/json'},
+      httpStatusCode: 422
+    })
+  }
+
+  aborted(error=undefined) {
     this.#createResponse({
       error,
       data: {error: {
@@ -21,7 +32,7 @@ export default class ResponseContext extends EventEmitter {
     })
   }
 
-  payloadTooLarge() {
+  payloadTooLarge(error=undefined) {
     this.#createResponse({
       error,
       data: {error: {
@@ -32,7 +43,7 @@ export default class ResponseContext extends EventEmitter {
     })
   }
 
-  unsupportedEncoding() {
+  unsupportedEncoding(error=undefined) {
     this.#createResponse({
       error,
       data: {error: {
@@ -43,7 +54,7 @@ export default class ResponseContext extends EventEmitter {
     })
   }
 
-  unsupportedPayload() {
+  unsupportedPayload(error=undefined) {
     this.#createResponse({
       error,
       data: {error: {
