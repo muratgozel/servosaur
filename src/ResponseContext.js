@@ -128,15 +128,17 @@ export default class ResponseContext extends EventEmitter {
   }
 
   toShortText() {
-    const contentType = this.httpHeaders['Content-Type'] || 'text/plain'
+    let str = ''
+    if (!this.data) return str
 
-    if (!this.data) return ''
-
-    if (contentType == 'application/json' && this.isObject(this.data)) {
-      return JSON.stringify(this.data).slice(0, 40)
+    if (this.isObject(this.data) || Array.isArray(this.data)) {
+      str = JSON.stringify(this.data)
+    }
+    else {
+      str = this.data
     }
 
-    return this.data.slice(0, 40)
+    return str.slice(0, 40) + (str.length > 40 ? '...' : '')
   }
 
   #createResponse(cfg={}) {
