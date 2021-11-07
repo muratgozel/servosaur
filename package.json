@@ -1,6 +1,6 @@
 {
   "name": "servosaur",
-  "version": "1.0.0-dev.39",
+  "version": "1.0.0-dev.40",
   "description": "Full featured server module.",
   "main": "src/index.js",
   "module": "src/index.js",
@@ -48,7 +48,7 @@
     "qs": "^6.10.1",
     "raw-body": "^2.4.1",
     "rbac": "^5.0.3",
-    "slonik": "^24.1.2",
+    "slonik": "^25.0.0",
     "type-is": "^1.6.18"
   }
 }
