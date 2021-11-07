@@ -10,10 +10,12 @@ export default class Storage {
   }
 
   async reserveId(col='id') {
-    return await this.pgpool.query(sql`
-      select nextval(pg_get_serial_sequence(${sql.identifier([this.name])}, ${sql.identifier([col])})) 
-      as new_id
-    `).rows[0].new_id
+    const tableToken = sql.identifier([this.name])
+    const fieldToken = sql.identifier([col])
+    const query = sql`select nextval(pg_get_serial_sequence(${tableToken}, ${fieldToken})) as new_id`
+    const result = await this.pgpool.query(query)
+    console.log('result:', result)
+    return result.rows[0].new_id
   }
 
   async exists(filter) {
