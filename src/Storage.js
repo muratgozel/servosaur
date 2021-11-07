@@ -98,7 +98,7 @@ export default class Storage {
 
     const tokens = []
 
-    for (const prop of obj) {
+    for (const prop in obj) {
       const description = this.getDescription(prop)
       const type = description.slonikPrimitiveType
       const field = sql.identifier(description.dbField)
