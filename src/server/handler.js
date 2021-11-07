@@ -56,7 +56,16 @@ export default (ctx) => {
     try {
       return await runController(ctx, req, res, req.controller)
     } catch (e) {
-      return res.internalError(e)
+      switch (e.message) {
+        case 'BODY_VALIDATION_ERROR':
+        case 'INVALID_NONCE':
+          return this.res.invalidBody(e.message, e.cause || e)
+          break;
+      
+        default:
+          return res.internalError(e)
+          break;
+      }
     }
   }
 }
