@@ -8,7 +8,6 @@ import {configure as configureLogging} from './modules/logging/index.js'
 import Auth from './modules/auth/index.js'
 import dayjs from './modules/dayjs/index.js'
 import Device from './modules/device/index.js'
-import Storage from './modules/storage/index.js'
 import * as pow from './modules/pow/index.js'
 import createDatabaseConnection from './application/createDatabaseConnection.js'
 import createRedisConnection from './application/createRedisConnection.js'
@@ -17,10 +16,14 @@ import {default as serverHandler} from './server/handler.js'
 import {default as requireHandler} from './require/handler.js'
 
 export {default as joi} from './modules/joi/index.js'
+export {default as dayjs} from './modules/dayjs/index.js'
 export {sql} from 'slonik'
+export * as util from './Util.js'
 export {route} from './server/router.js'
-export {createFactory as factory} from './EntityFactoryManager.js'
 export {middleware} from './Middlewares.js'
+export {default as Domain} from './Domain.js'
+export {default as Entity} from './Entity.js'
+export {default as Storage} from './Storage.js'
 
 export class Servosaur {
   constructor() {
@@ -33,6 +36,7 @@ export class Servosaur {
 
     ctx.config = convict(configSchema)
     ctx.config.validate({allowed: 'strict'})
+    ctx.version = ctx.config.get('version')
 
     ctx.rbac = rbacSchema ? await (new RBAC(rbacSchema)).init() : null
     ctx.joi = joi
@@ -44,7 +48,6 @@ export class Servosaur {
       maxmindAccountId: ctx.config.get('maxmindAccountId'),
       maxmindLicenseKey: ctx.config.get('maxmindLicenseKey')
     })
-    ctx.Storage = Storage
     ctx.pow = pow
 
     const connstr = ctx.config.get('pgConnStr')
@@ -64,8 +67,6 @@ export class Servosaur {
     }
     ctx.bree = jobs.length > 0 ? new Bree(breeopts) : null
 
-    ctx.version = ctx.config.get('version')
-
     process.on('uncaughtException', (err, origin) => {
       ctx.log.error(err, 'Uncaught exception.')
       process.exitCode = 1
@@ -78,7 +79,7 @@ export class Servosaur {
 
   async start() {
     return new Promise((resolve, reject) => {
-      this.ctx.bree.start()
+      if (this.ctx.bree) this.ctx.bree.start()
 
       this.server = http.createServer( serverHandler(this.ctx) )
 

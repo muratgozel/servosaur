@@ -1,5 +1,3 @@
-import {entityFactoryManager} from './EntityFactoryManager.js'
-
 export default class ApplicationContext {
   constructor() {
     this._config = null
@@ -12,7 +10,6 @@ export default class ApplicationContext {
     this._redis = null
     this._bree = null
     this._memory = {}
-    this._entityFactoryManager = entityFactoryManager
   }
 
   set config(v) {this._config = v}
@@ -44,6 +41,4 @@ export default class ApplicationContext {
 
   set memory(v) {this._memory = v}
   get memory() {return this._memory}
-
-  get entityFactoryManager() {return this._entityFactoryManager}
 }

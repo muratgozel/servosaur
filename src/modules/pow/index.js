@@ -29,7 +29,7 @@ export function checkProof(proof, nonce, secret, difficulty) {
   const isOk = bytes.slice(0, difficulty).reduce(sumBytes, 0) === 0
 
   if (!isOk) {
-    throw new BodyValidationError('INVALID_PROOF')
+    throw new Error('INVALID_PROOF')
   }
 
   return isOk

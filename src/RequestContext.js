@@ -4,7 +4,6 @@ export default class RequestContext {
     this._url = null
     this._ip = null
     this._ua = null
-    this._storage = null
     this._path = null
     this._controller = null
     this._pathParams = null
@@ -26,9 +25,6 @@ export default class RequestContext {
 
   set ua(v) {this._ua = v}
   get ua() {return this._ua}
-
-  set storage(v) {this._storage = v}
-  get storage() {return this._storage}
 
   set authstr(v) {this._authstr = v}
   get authstr() {return this._authstr}

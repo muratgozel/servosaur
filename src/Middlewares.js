@@ -1,5 +1,3 @@
-import { regexpToFunction } from "path-to-regexp"
-
 class Middlewares {
   constructor() {
     this._middlewares = []
@@ -10,10 +8,8 @@ class Middlewares {
   }
 
   async run(self) {
-    const results = {}
-
     if (Object.keys(this._middlewares).length === 0) {
-      return results
+      return self
     }
 
     let name = null
@@ -22,10 +18,10 @@ class Middlewares {
       return obj.fn.apply(self)
     })
     for await (const result of jobs) {
-      results[name] = result
+      self[name] = result
     }
 
-    return results
+    return self
   }
 }
 

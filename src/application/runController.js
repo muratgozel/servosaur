@@ -1,12 +1,10 @@
 import {middlewares} from '../Middlewares.js'
 
 export default async (ctx, req, res, controller) => {
-  const storage = new ctx.Storage(ctx, ctx.entityFactoryManager.factories)
   const thisctx = {
-    ctx, req, res, storage,
-    getSchema: name => ctx.entityFactoryManager.getSchema(name)
+    ctx, req, res
   }
-  thisctx.middleware = await middlewares.run(thisctx)
+  const thisctx2 = await middlewares.run(thisctx)
 
-  return await controller.apply(thisctx, [])
+  return await controller.apply(thisctx2, [])
 }
