@@ -10,9 +10,5 @@ export const getSystemTimezone = () => {
 }
 
 export const getCurrentDate = () => {
-  return (new Date()).toISOString()
-}
-
-export const getCurrentDateTz = (tzname) => {
-  return dayjs.tz(getCurrentDate(), getSystemTimezone()).tz(tzname).toISOString()
+  return dayjs().tz('UTC').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
 }
