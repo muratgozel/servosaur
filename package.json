@@ -1,6 +1,6 @@
 {
   "name": "servosaur",
-  "version": "1.0.0-dev.41",
+  "version": "1.0.0-dev.42",
   "description": "Full featured server module.",
   "main": "src/index.js",
   "module": "src/index.js",

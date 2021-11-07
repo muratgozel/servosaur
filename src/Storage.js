@@ -13,9 +13,7 @@ export default class Storage {
     const tableToken = sql.literalValue(this.name)
     const fieldToken = sql.literalValue(col)
     const query = sql`select nextval(pg_get_serial_sequence(${tableToken}, ${fieldToken})) as new_id`
-    console.log('query:',query)
     const result = await this.pgpool.query(query)
-    console.log('result:', result)
     return result.rows[0].new_id
   }
 
