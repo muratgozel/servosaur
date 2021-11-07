@@ -14,5 +14,5 @@ export const getCurrentDate = () => {
 }
 
 export const getCurrentDateTz = (tzname) => {
-  return dayjs.tz(getCurrentDate(), getSystemTimezone()).tz(tzname)
+  return dayjs.tz(getCurrentDate(), getSystemTimezone()).tz(tzname).toISOString()
 }
