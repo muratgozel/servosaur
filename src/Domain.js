@@ -8,7 +8,7 @@ export default class Domain {
   static generateDescriptions(schemas) {
     const result = {}
     const slonikPrimitiveTypeMap = {
-      'boolean': 'boolean',
+      'boolean': 'bool',
       'number': 'int4',
       'string': 'text',
       'object': 'jsonb'
