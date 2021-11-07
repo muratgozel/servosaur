@@ -92,6 +92,7 @@ export default class Storage {
   }
 
   createFilterToken(obj=null) {
+    console.log('obj:', obj)
     if (!obj) {
       return sql`1 > 0`
     }
@@ -100,6 +101,7 @@ export default class Storage {
 
     for (const prop in obj) {
       const description = this.getDescription(prop)
+      console.log(description)
       const type = description.slonikPrimitiveType
       const field = sql.identifier(description.dbField)
 
