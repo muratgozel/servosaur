@@ -9,6 +9,13 @@ export default class Storage {
     this.pgconn = servosaur.pgconn || null
   }
 
+  async reserveId(col='id') {
+    return await this.pgpool.query(sql`
+      select nextval(pg_get_serial_sequence(${sql.identifier([this.name])}, ${sql.identifier([col])})) 
+      as new_id
+    `).rows[0].new_id
+  }
+
   async exists(filter) {
     const tableToken = sql.identifier([this.name])
     const filterToken = this.createFilterToken(filter)
