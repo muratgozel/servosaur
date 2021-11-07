@@ -59,7 +59,7 @@ export default (ctx) => {
       switch (e.message) {
         case 'BODY_VALIDATION_ERROR':
         case 'INVALID_NONCE':
-          return this.res.invalidBody(e.message, e.cause || e)
+          return res.invalidBody(e.message, e.cause || e)
           break;
       
         default:
