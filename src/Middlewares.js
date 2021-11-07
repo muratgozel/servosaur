@@ -18,7 +18,7 @@ class Middlewares {
       return obj.fn.apply(self)
     })
     for await (const result of jobs) {
-      self[name] = result
+      // each middleware will assign whatever result they provide to self
     }
 
     return self
