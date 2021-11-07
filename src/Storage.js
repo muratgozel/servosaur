@@ -92,7 +92,6 @@ export default class Storage {
   }
 
   createFilterToken(obj=null) {
-    console.log('obj:', obj)
     if (!obj) {
       return sql`1 > 0`
     }
@@ -101,15 +100,13 @@ export default class Storage {
 
     for (const prop in obj) {
       const description = this.getDescription(prop)
-      console.log(description)
-      const type = description.slonikPrimitiveType
       const field = sql.identifier(description.dbField)
 
       if (Array.isArray(obj[prop])) {
-        tokens.push( sql`${field} in (${sql.join(obj[prop], sql`, `)})` )
+        tokens.push( sql`${sql.identifier(field.split('.'))} in (${sql.join(obj[prop], sql`, `)})` )
       }
       else {
-        tokens.push( sql`${field}=${obj[prop]}` )
+        tokens.push( sql`${sql.identifier(field.split('.'))}=${obj[prop]}` )
       }
     }
 
@@ -148,7 +145,7 @@ export default class Storage {
       const v = payload[param]
       const serialized = this.serializeFieldValue(v, description.slonikPrimitiveType)
       
-      tokens.push(sql`${field}=${serialized}`)
+      tokens.push(sql`${sql.identifier(field.split('.'))}=${serialized}`)
     }
 
     return sql.join(tokens, sql`, `)
