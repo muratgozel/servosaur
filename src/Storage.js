@@ -100,13 +100,13 @@ export default class Storage {
 
     for (const prop in obj) {
       const description = this.getDescription(prop)
-      const field = sql.identifier(description.dbField)
+      const field = sql.identifier([description.dbField])
 
       if (Array.isArray(obj[prop])) {
-        tokens.push( sql`${sql.identifier(field.split('.'))} in (${sql.join(obj[prop], sql`, `)})` )
+        tokens.push( sql`${field} in (${sql.join(obj[prop], sql`, `)})` )
       }
       else {
-        tokens.push( sql`${sql.identifier(field.split('.'))}=${obj[prop]}` )
+        tokens.push( sql`${field}=${obj[prop]}` )
       }
     }
 
@@ -145,7 +145,7 @@ export default class Storage {
       const v = payload[param]
       const serialized = this.serializeFieldValue(v, description.slonikPrimitiveType)
       
-      tokens.push(sql`${sql.identifier(field.split('.'))}=${serialized}`)
+      tokens.push(sql`${sql.identifier([description.dbField])}=${serialized}`)
     }
 
     return sql.join(tokens, sql`, `)
