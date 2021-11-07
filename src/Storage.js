@@ -12,7 +12,7 @@ export default class Storage {
   async reserveId(col='id') {
     const tableToken = sql.identifier([this.name])
     const fieldToken = sql.identifier([col])
-    const query = sql`select nextval(pg_get_serial_sequence('${tableToken}', '${col}')) as new_id`
+    const query = sql`select nextval(pg_get_serial_sequence('${tableToken}', ${fieldToken}))`
     const result = await this.pgpool.query(query)
     console.log('result :', result)
     return result.rows[0].new_id
