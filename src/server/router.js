@@ -1,4 +1,5 @@
 import pathre from 'path-to-regexp'
+import {NotFound, MethodNotAllowed} from '../errors.js'
 
 class Route {
   constructor(expression, method, controller) {
@@ -21,11 +22,18 @@ class Router {
   }
 
   match(path, method) {
+    let pathMatchesButMethod = false
+
     for (const r of this.routes) {
       const matchedRoute = r.match(path)
 
+      if (matchedRoute && r.method != method) {
+        pathMatchesButMethod = true
+      }
+
       if (matchedRoute && r.method == method) {
         return {
+          method: r.method,
           path,
           controller: r.controller,
           pathParams: matchedRoute.params || {}
@@ -33,7 +41,11 @@ class Router {
       }
     }
 
-    throw new Error('ENDPOINT_NOT_FOUND')
+    if (pathMatchesButMethod) {
+      throw new MethodNotAllowed('INVALID_HTTP_METHOD', {context: {path: path}})
+    }
+
+    throw new NotFound('ENDPOINT_NOT_FOUND', {context: {path: path}})
   }
 
   addRoute(r) {

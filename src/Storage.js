@@ -2,11 +2,36 @@ import {sql, NotFoundError, DataIntegrityError} from 'slonik'
 import pgformat from 'pg-format'
 
 export default class Storage {
-  constructor(name, descriptions, servosaur) {
+  constructor(name, schema, servosaur) {
     this.name = name
-    this.descriptions = descriptions
+    this.schema = schema
     this.pgpool = servosaur.ctx.pgpool
     this.pgconn = servosaur.pgconn || null
+
+    this.fields = []
+    this.slonikPrimitiveTypes = {}
+
+    this.configure()
+  }
+
+  configure() {
+    const slonikPrimitiveTypeMap = {
+      'boolean': 'bool',
+      'number': 'int4',
+      'string': 'text',
+      'object': 'jsonb'
+    }
+    const obj = this.schema.describe().keys
+
+    this.fields = Object.keys(obj)
+    this.slonikPrimitiveTypes = Object
+      .keys(obj)
+      .reduce((memo, prop) => {
+        memo[prop] = obj[prop].metas?.[0].slonikPrimitiveType 
+          || slonikPrimitiveTypeMap[obj[prop].type] 
+          || 'text'
+        return memo
+      }, {})
   }
 
   async reserveId(col='id') {
@@ -41,11 +66,11 @@ export default class Storage {
       return await this.pgconn.one(query)
     } catch (e) {
       if (e instanceof NotFoundError) {
-        throw new Error('DATA_NOT_FOUND', {cause: e})
+        return new Error('RECORD_NOT_FOUND', {cause: e})
       }
 
       if (e instanceof DataIntegrityError) {
-        throw new Error('DATA_INTEGRITY_ERROR', {cause: e})
+        return new Error('INTEGRITY_ERROR', {cause: e})
       }
 
       throw e
@@ -63,11 +88,13 @@ export default class Storage {
     return await this.pgconn.any(query)
   }
 
-  async create(entity) {
+  async create(_entity) {
+    const entities = Array.isArray(_entity) ? _entity : [_entity]
+    const entity = entities[0]
     const tableToken = sql.identifier([this.name])
-    const fieldsToken = this.createFieldsToken()
-    const slonikPrimitiveTypes = this.getPrimitiveTypes()
-    const rows = this.createInsertionRows([entity])
+    const fieldsToken = this.createFieldsToken(entity)
+    const slonikPrimitiveTypes = this.getFieldsSlonikPrimitiveTypes(entity)
+    const rows = this.createInsertionRows(entities)
     const unnestToken = sql.unnest(rows, slonikPrimitiveTypes)
     const query = sql`
       insert into ${tableToken} (${fieldsToken})
@@ -78,7 +105,6 @@ export default class Storage {
 
   async update(payload, filter) {
     const tableToken = sql.identifier([this.name])
-    const fieldsToken = this.createFieldsToken()
     const filterToken = this.createFilterToken(filter)
     const updatesToken = this.createUpdatesToken(payload)
     const query = sql`
@@ -99,7 +125,7 @@ export default class Storage {
     return await this.pgconn.query(query)
   }
 
-  createFilterToken(obj=null) {
+  createFilterToken(obj=null, op='AND') {
     if (!obj) {
       return sql`1 > 0`
     }
@@ -107,36 +133,38 @@ export default class Storage {
     const tokens = []
 
     for (const prop in obj) {
-      const description = this.getDescription(prop)
-      const field = sql.identifier([description.dbField])
+      const field = prop.split('.').reverse()[0]
+      if (this.fields.indexOf(field) === -1) continue;
+      const fieldToken = sql.identifier([field])
+      const slonikPrimitiveType = this.slonikPrimitiveTypes[field]
 
-      if (Array.isArray(obj[prop])) {
-        tokens.push( sql`${field} in (${sql.join(obj[prop], sql`, `)})` )
-      }
-      else {
-        tokens.push( sql`${field}=${obj[prop]}` )
-      }
+      const token = 
+        slonikPrimitiveType == 'text[]'   ? sql`${obj[prop]} = ANY (${field})` :
+        Array.isArray(obj[prop])          ? sql`${fieldToken} in (${sql.join(obj[prop], sql`, `)})` : 
+        sql`${fieldToken}=${obj[prop]}`
+
+      tokens.push(token)
     }
 
     if (tokens.length === 0) {
       return sql`1 > 0`
     }
 
-    return sql.join(tokens, sql` AND `)
+    return sql.join(tokens, sql` ${op} `)
+  }
+
+  mergeFilterTokens(tokens, op='AND') {
+    return sql.join(tokens, sql` ${op} `)
   }
 
   createInsertionRows(entities) {
+    const fields = this.getFields(entities[0])
     const rows = []
 
     for (const entity of entities) {
       const row = []
-
-      for (const param of entity.getParams()) {
-        const description = this.getDescription(param)
-        const v = entity.hasOwnProperty(param) ? entity[param] : null
-        const serialized = this.serializeFieldValue(v, description.slonikPrimitiveType)
-        
-        row.push(serialized)
+      for (const field of fields) {
+        row.push( this.serializeFieldValue(entity[field], this.slonikPrimitiveTypes[field]) )
       }
       
       rows.push(row)
@@ -145,51 +173,30 @@ export default class Storage {
     return rows
   }
 
-  createUpdatesToken(payload) {
-    const tokens = []
-
-    for (const param in payload) {
-      const description = this.getDescription(param)
-      const v = payload[param]
-      const serialized = this.serializeFieldValue(v, description.slonikPrimitiveType)
-      
-      tokens.push(sql`${sql.identifier([description.dbField])}=${serialized}`)
-    }
+  createUpdatesToken(obj) {
+    const tokens = Object
+      .keys(obj)
+      .filter(field => this.fields.indexOf(field) !== -1)
+      .map(field => {
+        const fieldToken = sql.identifier([field])
+        const serialized = this.serializeFieldValue(obj[field], this.slonikPrimitiveTypes[field])
+        return sql`${fieldToken}=${serialized}`
+      })
 
     return sql.join(tokens, sql`, `)
   }
 
-  createFieldsToken(schema='root') {
-    const identifiers = []
-
-    for (const o of this.descriptions[schema]) {
-      identifiers.push( sql.identifier([o.dbField]) )
-    }
-
-    return sql.join(identifiers, sql`, `)
+  createFieldsToken(entity) {
+    const fields = this.getFields(entity).map(f => sql.identifier([f]))
+    return sql.join(fields, sql`, `)
   }
 
-  getPrimitiveTypes(schema='root') {
-    const types = []
-
-    for (const o of this.descriptions[schema]) {
-      types.push( o.slonikPrimitiveType )
-    }
-
-    return types
+  getFieldsSlonikPrimitiveTypes(entity) {
+    return this.getFields().map(f => this.slonikPrimitiveTypes[f])
   }
 
-  getDescription(prop, schema='root') {
-    prop = prop.split('.').reverse()[0]
-    const arr = this.descriptions[schema].filter(o => o.dbField == prop)
-
-    if (Array.isArray(arr) && arr.length > 0) {
-      return arr[0]
-    }
-
-    throw new Error('PROP_DESCRIPTION_NOT_FOUND', {
-      cause: new Error(`"${prop}" not found in "${this.name}"'s ${schema} description.`)
-    })
+  getFields(entity) {
+    return this.fields.filter(f => entity.hasOwnProperty(f))
   }
 
   serializeFieldValue(v, type) {

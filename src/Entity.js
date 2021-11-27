@@ -1,29 +1,31 @@
 export default class Entity {
-  #params = []
-  #hideParams = []
+  #schema = null
 
-  constructor(payload, params, hideParams) {
-    this.#params = params
-    this.#hideParams = hideParams
-    this.setParams(payload)
-  }
+  constructor(payload, schema) {
+    Object.assign(this, payload)
 
-  setParams(payload) {
-    this.#params.map(
-      p => payload.hasOwnProperty(p) ? this[p] = payload[p] : null
-    )
-  }
+    this.#schema = schema
 
-  getParams() {
-    return this.#params
+    this.validate()
   }
 
   represent() {
-    return this.#params.reduce((memo, p) => {
-      if (this.#hideParams.indexOf(p) === -1) {
-        memo[p] = this[p]
-      }
-      return memo
-    }, {})
+    const excluded = this.excludeInRepresentation()
+
+    return Object
+      .keys(this)
+      .filter(prop => excluded.indexOf(prop) === -1)
+      .reduce((memo, prop) => {
+        memo[prop] = this[p]
+        return memo
+      }, {})
+  }
+
+  validate() {
+    this.#schema.validateAsync(this)
+  }
+
+  excludeInRepresentation() {
+    return []
   }
 }

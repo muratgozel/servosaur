@@ -17,6 +17,10 @@ export default class Auth {
     return randomBytes(len/2).toString('hex')
   }
 
+  static createHash(data) {
+    return crypto.createHash(this.hmacAlgorithm).update(data).digest('hex')
+  }
+
   createMac(data, secret) {
     return crypto.createHmac(this.hmacAlgorithm, secret).update(data).digest('hex')
   }

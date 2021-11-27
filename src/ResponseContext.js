@@ -1,4 +1,8 @@
 import EventEmitter from 'events'
+import {
+  UnprocessableEntity, BadRequest, NotFound, NotAuthenticated, NotAuthorized,
+  PayloadTooLarge, UnsupportedMediaType, InternalServerError, ServosaurError
+} from './errors.js'
 
 export default class ResponseContext extends EventEmitter {
   constructor() {
@@ -10,144 +14,78 @@ export default class ResponseContext extends EventEmitter {
     this.error = null
   }
 
-  invalidBody(code=null, error=undefined) {
-    this.#createResponse({
-      error,
-      data: {error: {
-        code: code || 'BODY_VALIDATION_ERROR'
-      }},
-      httpHeaders: {'Content-Type': 'application/json'},
-      httpStatusCode: 422
-    })
+  error(e, headers={}) {
+    if (!(e instanceof ServosaurError)) {
+      this.error = e
+      this.data = {error: {code: 'UNEXPECTED_ERROR'}}
+      this.httpStatusCode = 500
+    }
+    else {
+      this.data = {error: {code: e.message}}
+  
+      if (e.details) this.data.error.details = e.details  
+
+      if (e instanceof UnprocessableEntity ) this.httpStatusCode = 422
+      if (e instanceof BadRequest ) this.httpStatusCode = 400
+      if (e instanceof NotFound ) this.httpStatusCode = 404
+      if (e instanceof NotAuthenticated ) this.httpStatusCode = 401
+      if (e instanceof NotAuthorized ) this.httpStatusCode = 403
+      if (e instanceof PayloadTooLarge ) this.httpStatusCode = 413
+      if (e instanceof UnsupportedMediaType ) this.httpStatusCode = 415
+      if (e instanceof InternalServerError) this.httpStatusCode = 500
+    }
+
+    this.httpHeaders = Object.assign({}, this.httpHeaders, httpHeaders || {})
+
+    this.setContentType()
+    this.emit('ready')
   }
 
-  aborted(error=undefined) {
-    this.#createResponse({
-      error,
-      data: {error: {
-        code: 'ABORTED'
-      }},
-      httpHeaders: {'Content-Type': 'application/json'},
-      httpStatusCode: 400
-    })
+  empty(httpHeaders={}) {
+    this.data = null
+    this.httpStatusCode = 204
+    this.httpHeaders = Object.assign({}, this.httpHeaders, httpHeaders || {})
+    this.setContentType()
+    this.emit('ready')
   }
 
-  payloadTooLarge(error=undefined) {
-    this.#createResponse({
-      error,
-      data: {error: {
-        code: 'BAD_REQUEST'
-      }},
-      httpHeaders: {'Content-Type': 'application/json'},
-      httpStatusCode: 413
-    })
-  }
-
-  unsupportedEncoding(error=undefined) {
-    this.#createResponse({
-      error,
-      data: {error: {
-        code: 'BAD_REQUEST'
-      }},
-      httpHeaders: {'Content-Type': 'application/json'},
-      httpStatusCode: 415
-    })
-  }
-
-  unsupportedPayload(error=undefined) {
-    this.#createResponse({
-      error,
-      data: {error: {
-        code: 'BAD_REQUEST'
-      }},
-      httpHeaders: {'Content-Type': 'application/json'},
-      httpStatusCode: 415
-    })
-  }
-
-  badRequest(error, msg='') {
-    this.#createResponse({
-      error,
-      data: {error: {
-        code: 'BAD_REQUEST'
-      }},
-      httpHeaders: {'Content-Type': 'application/json'},
-      httpStatusCode: 400
-    })
-  }
-
-  notFound() {
-    this.#createResponse({
-      data: {error: {
-        code: 'NOT_FOUND'
-      }},
-      httpHeaders: {'Content-Type': 'application/json'},
-      httpStatusCode: 404
-    })
-  }
-
-  internalError(error) {
-    this.#createResponse({
-      error,
-      data: {error: {
-        code: 'UNEXPECTED_ERROR'
-      }},
-      httpHeaders: {'Content-Type': 'application/json'},
-      httpStatusCode: 500
-    })
+  created(data, httpHeaders={}) {
+    this.data = data
+    this.httpStatusCode = 201
+    this.httpHeaders = Object.assign({}, this.httpHeaders, httpHeaders || {})
+    this.setContentType()
+    this.emit('ready')
   }
 
   json(obj, httpHeaders={}) {
-    this.#createResponse({
-      data: obj,
-      httpHeaders: Object.assign({}, httpHeaders, {'Content-Type': 'application/json'}),
-      httpStatusCode: 200
-    })
+    this.data = obj
+    this.httpStatusCode = 200
+    this.httpHeaders = Object.assign({}, this.httpHeaders, httpHeaders || {})
+    this.setContentType()
+    this.emit('ready')
   }
 
-  created(data='', httpHeaders={}) {
-    this.#setContentType(data)
-    this.#createResponse({
-      data: data,
-      httpHeaders,
-      httpStatusCode: 201
-    })
-  }
-
-  updated(data='', httpHeaders={}) {
-    this.#setContentType(data)
-    this.#createResponse({
-      data: data,
-      httpHeaders,
-      httpStatusCode: 200
-    })
-  }
-
-  deleted() {
-    this.#createResponse({httpStatusCode: 204})
+  markedForDeletion(httpHeaders={}) {
+    this.data = null
+    this.httpStatusCode = 202
+    this.httpHeaders = Object.assign({}, this.httpHeaders, httpHeaders || {})
+    this.setContentType()
+    this.emit('ready')
   }
 
   toShortText() {
-    let str = ''
-    if (!this.data) return str
-
-    if (this.isObject(this.data) || Array.isArray(this.data)) {
-      str = JSON.stringify(this.data)
-    }
-    else {
-      str = this.data
-    }
-
-    return str.slice(0, 40) + (str.length > 40 ? '...' : '')
+    const str = this.serialize(this.data)
+    const len = str.length
+    return str.slice(0, 40) + (len > 40 ? '...' : '')
   }
 
-  #createResponse(cfg={}) {
-    this.error = cfg.error || null
-    this.data = cfg.data || ''
-    this.httpHeaders = Object.assign({}, this.httpHeaders, cfg.httpHeaders || {})
-    this.httpStatusCode = cfg.httpStatusCode
-
-    this.emit('ready')
+  setContentType() {
+    if (this.isObject(this.data) || Array.isArray(this.data)) {
+      this.httpHeaders['Content-Type'] = 'application/json'
+    }
+    else {
+      this.httpHeaders['Content-Type'] = 'text/plain'
+    }
   }
 
   serialize(data) {
@@ -155,16 +93,7 @@ export default class ResponseContext extends EventEmitter {
       return JSON.stringify(data)
     }
     else {
-      return data
-    }
-  }
-
-  #setContentType(data) {
-    if (this.isObject(data)) {
-      this.httpHeaders['Content-Type'] = 'application/json'
-    }
-    else {
-      this.httpHeaders['Content-Type'] = 'text/plain'
+      return data.toString()
     }
   }
 

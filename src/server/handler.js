@@ -1,6 +1,7 @@
 import {URL} from 'url'
 import qs from 'qs'
 import proxyaddr from 'proxy-addr'
+import * as errors from '../errors.js'
 import runController from '../application/runController.js'
 import RequestContext from '../RequestContext.js'
 import ResponseContext from '../ResponseContext.js'
@@ -33,7 +34,7 @@ export default (ctx) => {
     try {
       req.body = await parse(request, res)
     } catch (e) {
-      return res.internalError(e)
+      return res.error(e)
     }
 
     req.url = new URL(`https://${request.headers.host}${request.url}`)
@@ -43,29 +44,21 @@ export default (ctx) => {
 
     // route
     try {
-      const {path, controller, pathParams} = router.match(request.url, request.method)
+      const {path, controller, pathParams, method} = router.match(request.url, request.method)
 
+      req.method = method
       req.path = path
       req.controller = controller
       req.pathParams = pathParams
       req.searchParams = req.url.search ? qs.parse(req.url.search) : {}
     } catch (e) {
-      return e.message == 'ENDPOINT_NOT_FOUND' ? res.notFound() : res.internalError(e)
+      return res.error(e)
     }
 
     try {
       return await runController(ctx, req, res, req.controller)
     } catch (e) {
-      switch (e.message) {
-        case 'BODY_VALIDATION_ERROR':
-        case 'INVALID_NONCE':
-          return res.invalidBody(e.message, e.cause || e)
-          break;
-      
-        default:
-          return res.internalError(e)
-          break;
-      }
+      return res.error(e)
     }
   }
 }

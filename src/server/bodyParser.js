@@ -2,6 +2,7 @@ import zlib from 'zlib'
 import getRawBody from 'raw-body'
 import typeis from 'type-is'
 import qs from 'qs'
+import * as errors from '../errors.js'
 
 function decode(stream) {
   const encoding = (stream.headers['content-encoding'] || 'identity').toLowerCase()
@@ -40,7 +41,7 @@ export default async function parse(request, res) {
   try {
     request = decode(request)
   } catch (e) {
-    return res.badRequest(e)
+    return res.error(new BadRequest('DECODING_FAILED', {cause: e}))
   }
 
   // read raw body as buffer
@@ -51,23 +52,23 @@ export default async function parse(request, res) {
     if (e.type) {
       switch (e.type) {
         case 'encoding.unsupported':
-          return res.unsupportedEncoding()
+          return res.error(new UnsupportedMediaType('UNSUPPORTED_ENCODING', {cause: e}))
           break;
         case 'entity.too.large':
-          return res.payloadTooLarge()
+          return res.error(new PayloadTooLarge('PAYLOAD_TOO_LARGE', {cause: e}))
           break;
         case 'request.aborted':
-          return res.aborted()
+          return res.error(new BadRequest('ABORTED', {cause: e}))
           break;
         case 'request.size.invalid':
-          return res.badRequest(e, 'Request size and content length didn\'t match.')
+          return res.error(new BadRequest('REQUEST_SIZE_MISMATCH', {cause: e}))
           break;
         default:
-          return res.internalError(e)
+          return res.error(new InternalServerError('COULDN\'T READ BODY', {cause: e}))
           break;
       }
     }
-    return res.internalError(e)
+    return res.error(new InternalServerError('COULDN\'T READ BODY', {cause: e}))
   }
 
   // parse
@@ -87,10 +88,10 @@ export default async function parse(request, res) {
       break;
 
     case 'multipart':
-      return res.unsupportedPayload()
+      return res.error(new UnsupportedMediaType('UNSUPPORTED_CONTENT_TYPE', {cause: e}))
       break;
 
     default:
-      return res.unsupportedPayload()
+      return res.error(new UnsupportedMediaType('UNSUPPORTED_CONTENT_TYPE', {cause: e}))
   }
 }

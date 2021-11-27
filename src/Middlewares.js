@@ -3,8 +3,8 @@ class Middlewares {
     this._middlewares = []
   }
 
-  add(name, fn) {
-    this._middlewares.push({name, fn})
+  add(fn) {
+    this._middlewares.push({fn})
   }
 
   async run(self) {
@@ -12,9 +12,7 @@ class Middlewares {
       return self
     }
 
-    let name = null
     const jobs = this._middlewares.map(obj => {
-      name = obj.name
       return obj.fn.apply(self)
     })
     for await (const result of jobs) {
@@ -27,6 +25,6 @@ class Middlewares {
 
 export const middlewares = new Middlewares()
 
-export function middleware(name, fn) {
-  return middlewares.add(name, fn)
+export function middleware(fn) {
+  return middlewares.add(fn)
 }

@@ -1,10 +1,12 @@
 import {middlewares} from '../Middlewares.js'
 
 export default async (ctx, req, res, controller) => {
-  const thisctx = {
-    ctx, req, res
+  let thisctx = {ctx, req, res}
+  try {
+    thisctx = await middlewares.run(thisctx)
+  } catch (e) {
+    return res.error(e)
   }
-  const thisctx2 = await middlewares.run(thisctx)
 
-  return await controller.apply(thisctx2, [])
+  return await controller.apply(thisctx, [])
 }
