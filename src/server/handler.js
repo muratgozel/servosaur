@@ -21,8 +21,8 @@ export default (ctx) => {
     res.on('ready', () => {
       ctx.log.info(`${request.method} ${request.url} ${res.httpStatusCode} ${res.toShortText()}`)
 
-      if (res.error) {
-        ctx.log.error(res.error)
+      if (res._error) {
+        ctx.log.error(res._error)
       }
 
       response.writeHead(res.httpStatusCode, res.httpHeaders)
