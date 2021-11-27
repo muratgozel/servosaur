@@ -4,22 +4,23 @@ class Middlewares {
   }
 
   add(fn) {
-    this._middlewares.push({fn})
+    this._middlewares.push(fn)
   }
 
-  async run(self) {
-    if (Object.keys(this._middlewares).length === 0) {
+  async run(self, middlewares=null) {
+    if (middlewares === null) {
+      return await this.run(self, [].concat(this._middlewares))
+    }
+
+    if (middlewares.length === 0) {
       return self
     }
 
-    const jobs = this._middlewares.map(obj => {
-      return obj.fn.apply(self)
-    })
-    for await (const result of jobs) {
-      // each middleware will assign whatever result they provide to self
-    }
+    await middlewares[0].apply(self)
 
-    return self
+    middlewares.shift()
+
+    return this.run(self, middlewares)
   }
 }
 
