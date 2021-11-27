@@ -151,7 +151,7 @@ export default class Storage {
       return sql`1 > 0`
     }
 
-    return sql.join(tokens, ` ${op} `)
+    return sql.join(tokens, sql` ${sql.literalValue(op)} `)
   }
 
   mergeFilterTokens(tokens, op='AND') {
