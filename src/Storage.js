@@ -141,6 +141,7 @@ export default class Storage {
       const token = 
         slonikPrimitiveType == 'text[]'   ? sql`${obj[prop]} = ANY (${field})` :
         Array.isArray(obj[prop])          ? sql`${fieldToken} in (${sql.join(obj[prop], sql`, `)})` : 
+        obj[prop] == '$IS_NOT_NULL'       ? sql`${fieldToken} IS NOT NULL` :
         sql`${fieldToken}=${obj[prop]}`
 
       tokens.push(token)
