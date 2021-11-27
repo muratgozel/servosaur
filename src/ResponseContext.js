@@ -14,7 +14,7 @@ export default class ResponseContext extends EventEmitter {
     this._error = null
   }
 
-  error(e, headers={}) {
+  error(e, httpHeaders={}) {
     if (!(e instanceof ServosaurError)) {
       this._error = e
       this.data = {error: {code: 'UNEXPECTED_ERROR'}}
