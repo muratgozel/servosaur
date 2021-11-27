@@ -14,8 +14,8 @@ export default async (ctx, controller, payload={}, settings={}) => {
   res.on('ready', () => {
     ctx.log.info(`REQUIRE ${controller.name} ${res.httpStatusCode} ${res.toShortText()}`)
 
-    if (res.error) {
-      ctx.log.error(res.error)
+    if (res._error) {
+      ctx.log.error(res._error)
     }
   })
   

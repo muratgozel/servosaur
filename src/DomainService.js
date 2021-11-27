@@ -9,8 +9,13 @@ export default class DomainService {
   }
 
   async getOne(filter) {
-    const row = await this.storage.getOne(filter)
+    const row = await this.storage.one(filter)
     return new this.entity(row)
+  }
+
+  async get(filter) {
+    const rows = await this.storage.many(filter)
+    return rows.map(row => this.entity(row))
   }
 
   async exists(filter) {
