@@ -5,7 +5,7 @@
   "npm": {
     "enable": true,
     "updatePkgJson": true,
-    "publish": true,
+    "publish": false,
     "publishCmdSuffix": "--access public"
   },
   "github": {
