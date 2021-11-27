@@ -41,6 +41,7 @@ export default (ctx) => {
     req.ip = proxyaddr.all(request)[0]
     req.ua = request.headers['user-agent']
     req.authstr = request.headers.authorization || null
+    req.headers = request.headers
 
     // route
     try {

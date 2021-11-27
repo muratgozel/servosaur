@@ -13,6 +13,7 @@ export default class RequestContext {
     this._filter = null
     this._payload = null
     this._method = null
+    this._headers = null
   }
 
   set body(v) {this._body = v}
@@ -53,6 +54,9 @@ export default class RequestContext {
 
   set method(v) {this._method = v}
   get method() {return this._method}
+
+  set headers(v) {this._headers = v}
+  get headers() {return this._headers}
 
   isObject(v) {
     return Object.prototype.toString.call(v) == '[object Object]'
