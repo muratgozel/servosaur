@@ -1,4 +1,4 @@
-class ServosaurError extends Error {
+export class ServosaurError extends Error {
   constructor(msg, payload) {
     super(msg)
 
