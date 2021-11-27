@@ -15,7 +15,7 @@ export default class DomainService {
 
   async get(filter) {
     const rows = await this.storage.many(filter)
-    return rows.map(row => this.entity(row))
+    return rows.map(row => new this.entity(row))
   }
 
   async exists(filter) {

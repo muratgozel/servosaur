@@ -85,6 +85,7 @@ export default class Storage {
       from ${tableToken} 
       where ${filterToken}
     `
+    console.log('yyy:', await this.pgconn.any(query))
     return await this.pgconn.any(query)
   }
 
