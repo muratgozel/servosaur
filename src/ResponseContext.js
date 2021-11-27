@@ -11,12 +11,12 @@ export default class ResponseContext extends EventEmitter {
     this.data = null
     this.httpHeaders = {}
     this.httpStatusCode = 0
-    this.error = null
+    this._error = null
   }
 
   error(e, headers={}) {
     if (!(e instanceof ServosaurError)) {
-      this.error = e
+      this._error = e
       this.data = {error: {code: 'UNEXPECTED_ERROR'}}
       this.httpStatusCode = 500
     }
