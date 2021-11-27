@@ -42,9 +42,9 @@ export default class Storage {
     return result.rows[0].new_id
   }
 
-  async exists(filter) {
+  async exists(filterToken) {
     const tableToken = sql.identifier([this.name])
-    const filterToken = this.createFilterToken(filter)
+    //const filterToken = this.createFilterToken(filter)
     const query = sql`
       select id 
       from ${tableToken} 
@@ -53,9 +53,9 @@ export default class Storage {
     return await this.pgpool.exists(query)
   }
 
-  async one(filter) {
+  async one(filterToken) {
     const tableToken = sql.identifier([this.name])
-    const filterToken = this.createFilterToken(filter)
+    //const filterToken = this.createFilterToken(filter)
     const query = sql`
       select * 
       from ${tableToken} 
@@ -77,9 +77,9 @@ export default class Storage {
     }
   }
 
-  async many(filter) {
+  async many(filterToken) {
     const tableToken = sql.identifier([this.name])
-    const filterToken = this.createFilterToken(filter)
+    //const filterToken = this.createFilterToken(filter)
     const query = sql`
       select * 
       from ${tableToken} 
@@ -103,9 +103,9 @@ export default class Storage {
     return await this.pgconn.query(query)
   }
 
-  async update(payload, filter) {
+  async update(payload, filterToken) {
     const tableToken = sql.identifier([this.name])
-    const filterToken = this.createFilterToken(filter)
+    //const filterToken = this.createFilterToken(filter)
     const updatesToken = this.createUpdatesToken(payload)
     const query = sql`
       update ${tableToken}
@@ -115,47 +115,14 @@ export default class Storage {
     return await this.pgconn.query(query)
   }
 
-  async delete(filter) {
+  async delete(filterToken) {
     const tableToken = sql.identifier([this.name])
-    const filterToken = this.createFilterToken(filter)
+    //const filterToken = this.createFilterToken(filter)
     const query = sql`
       delete from ${tableToken} 
       where ${filterToken}
     `
     return await this.pgconn.query(query)
-  }
-
-  createFilterToken(obj=null, op='AND') {
-    if (!obj) {
-      return sql`1 > 0`
-    }
-
-    const tokens = []
-
-    for (const prop in obj) {
-      const field = prop.split('.').reverse()[0]
-      if (this.fields.indexOf(field) === -1) continue;
-      const fieldToken = sql.identifier([field])
-      const slonikPrimitiveType = this.slonikPrimitiveTypes[field]
-
-      const token = 
-        slonikPrimitiveType == 'text[]'   ? sql`${obj[prop]} = ANY (${field})` :
-        Array.isArray(obj[prop])          ? sql`${fieldToken} in (${sql.join(obj[prop], sql`, `)})` : 
-        obj[prop] == '$IS_NOT_NULL'       ? sql`${fieldToken} IS NOT NULL` :
-        sql`${fieldToken}=${obj[prop]}`
-
-      tokens.push(token)
-    }
-
-    if (tokens.length === 0) {
-      return sql`1 > 0`
-    }
-
-    return sql.join(tokens, sql` ${sql.literalValue(op)} `)
-  }
-
-  mergeFilterTokens(tokens, op='AND') {
-    return sql.join(tokens, sql` ${op} `)
   }
 
   createInsertionRows(entities) {
