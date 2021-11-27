@@ -25,6 +25,8 @@ export default (ctx) => {
         ctx.log.error(res.error)
       }
 
+      console.log(res.httpStatusCode, res.httpHeaders, res.serialize(res.data))
+
       response.writeHead(res.httpStatusCode, res.httpHeaders)
       response.write(res.serialize(res.data))
       response.end()
