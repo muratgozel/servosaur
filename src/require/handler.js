@@ -31,7 +31,7 @@ export default async (ctx, controller, payload={}, settings={}) => {
   try {
     await runController(ctx, req, res, controller)
   } catch (e) {
-    return res.internalError(e)
+    return res.error(e)
   }
 
   return res.data
