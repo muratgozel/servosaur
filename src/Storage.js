@@ -129,6 +129,7 @@ export default class Storage {
 
   createInsertionRows(entities) {
     const fields = this.getFields(entities[0])
+    console.log('fields': fields)
     const rows = []
 
     for (const entity of entities) {
