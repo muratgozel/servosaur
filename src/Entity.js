@@ -16,7 +16,7 @@ export default class Entity {
       .keys(this)
       .filter(prop => excluded.indexOf(prop) === -1)
       .reduce((memo, prop) => {
-        memo[prop] = this[p]
+        memo[prop] = this[prop]
         return memo
       }, {})
   }
