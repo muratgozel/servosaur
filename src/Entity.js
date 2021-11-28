@@ -22,7 +22,7 @@ export default class Entity {
   }
 
   validate(payload) {
-    this.#schema.validateAsync(payload)
+    //this.#schema.validateAsync(payload)
   }
 
   excludeInRepresentation() {
