@@ -160,7 +160,7 @@ export default class Storage {
   }
 
   getFieldsSlonikPrimitiveTypes(entity) {
-    return this.getFields().map(f => this.slonikPrimitiveTypes[f])
+    return this.getFields(entity).map(f => this.slonikPrimitiveTypes[f])
   }
 
   getFields(entity) {
