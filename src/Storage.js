@@ -100,6 +100,8 @@ export default class Storage {
       insert into ${tableToken} (${fieldsToken})
       select * from ${unnestToken}
     `
+    console.log('unnest token:', unnestToken)
+    console.log('insert query:',query)
     return await this.pgconn.query(query)
   }
 
