@@ -6,7 +6,7 @@ export default class Entity {
 
     this.#schema = schema
 
-    this.validate()
+    this.validate(payload)
   }
 
   represent() {
@@ -21,8 +21,8 @@ export default class Entity {
       }, {})
   }
 
-  validate() {
-    this.#schema.validateAsync(this)
+  validate(payload) {
+    this.#schema.validateAsync(payload)
   }
 
   excludeInRepresentation() {
